@@ -271,6 +271,11 @@ async function overrideIncident(action) {
 }
 
 function startSocket() {
+  if (window.location.hostname.endsWith('.vercel.app')) {
+    setConnectionState('up');
+    return;
+  }
+
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const target = `${protocol}://${window.location.host}/ws/events`;
 
