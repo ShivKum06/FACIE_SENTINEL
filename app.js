@@ -6,7 +6,9 @@
     icon: '👤',
     description: 'Review whether object-level access checks are enforced consistently and whether the user can access another record without authorization.',
     summary: ['Object ID validation', 'User-to-resource ownership check', 'Permission boundary review'],
-    defaultEndpoint: '/api/incidents'
+    defaultEndpoint: '/api/v1/orders/order_101',
+    method: 'GET',
+    defaultHeaders: 'X-User-Id: usr_beta'
   },
   auth: {
     id: 'auth',
@@ -15,7 +17,10 @@
     icon: '🔑',
     description: 'Validate token handling, expiry, replay resistance, and whether weak or shared credentials can authenticate against protected endpoints.',
     summary: ['Token integrity checks', 'Session replay validation', 'Credential rotation review'],
-    defaultEndpoint: '/api/facie/status'
+    defaultEndpoint: '/login',
+    method: 'POST',
+    defaultHeaders: '',
+    body: { username: 'demo-user', password: 'wrong-password' }
   },
   bplra: {
     id: 'bplra',
@@ -24,7 +29,9 @@
     icon: '👁️',
     description: 'Inspect whether the API exposes unnecessary fields, leaked properties, or over-fetches data beyond the requested scope and role.',
     summary: ['Field exposure check', 'Property-level access trace', 'Response minimization review'],
-    defaultEndpoint: '/api/incidents'
+    defaultEndpoint: '/api/v1/user/statement',
+    method: 'GET',
+    defaultHeaders: ''
   },
   unrestricted: {
     id: 'unrestricted',
@@ -33,7 +40,9 @@
     icon: '⚡',
     description: 'Measure whether rate limiting, payload ceilings, and retry loops can exhaust infrastructure, memory, or downstream dependencies.',
     summary: ['Rate limit scan', 'Payload size validation', 'Retry abuse detection'],
-    defaultEndpoint: '/api/stats'
+    defaultEndpoint: '/products',
+    method: 'GET',
+    defaultHeaders: ''
   }
 };
 
@@ -97,6 +106,8 @@ function setActiveTest(testId) {
     <div class="summary-item"><strong>Check</strong><span>${esc(item)}</span></div>
   `).join('');
   $('#test-endpoint').value = test.defaultEndpoint;
+  $('#test-headers').value = test.defaultHeaders || '';
+  $('#test-count').value = test.id === 'unrestricted' ? 80 : test.id === 'auth' ? 5 : 1;
   $('#test-status').textContent = 'Ready';
 }
 
@@ -240,14 +251,17 @@ async function showIncident(id) {
       $('#detail-action').textContent = incident.action;
       $('#detail-risk').textContent = `${risk}/100`;
       const isLowRisk = risk < 30;
-      $('#detail-recommendation').hidden = !isLowRisk;
+      $('#detail-recommendation').hidden = false;
       $('#detail-recommendation').textContent = isLowRisk
         ? 'Low-risk incident: apply a temporary rate limit after human approval.'
-        : 'Choose an action after reviewing the evidence and risk score.';
+        : risk >= 70
+          ? 'High-risk incident: human approval is required before allowing or blocking this request.'
+          : 'Review the evidence and choose the appropriate human-approved action.';
       $('#rate-limit-button').classList.toggle('recommended', isLowRisk);
       $('#gaugeArc').style.stroke = risk >= 70 ? 'var(--red)' : risk >= 40 ? 'var(--amber)' : 'var(--green)';
       $('#gaugeArc').style.strokeDashoffset = 314.16 - (314.16 * risk / 100);
       $('#detail-reasons').innerHTML = (event?.reason || incident.ai_reason || 'Security rule matched').split('; ').map((reason) => `<li>${esc(reason)}</li>`).join('');
+      detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   } catch (error) {
     notify('Unable to load incident details');
@@ -320,12 +334,12 @@ async function runApiSecurityTest() {
   results.innerHTML = '<div class="log-entry">Preparing request sequence…</div>';
 
   const attempts = [];
-  const maxAttempts = Math.min(Math.max(requestCount, 1), 10);
+  const maxAttempts = Math.min(Math.max(requestCount, 1), test.id === 'unrestricted' ? 80 : 10);
 
   for (let i = 0; i < maxAttempts; i += 1) {
     try {
-      const method = test.id === 'unrestricted' ? 'POST' : 'GET';
-      const payload = test.id === 'unrestricted' ? { payload: 'X'.repeat(2048 * (i + 1)) } : undefined;
+      const method = test.method || 'GET';
+      const payload = test.body;
       const response = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json', ...headers },
@@ -354,7 +368,14 @@ async function runApiSecurityTest() {
 
   const outcome = attempts.some((entry) => entry.ok === false) ? 'Review' : 'Pass';
   statusPill.textContent = outcome;
-  notify(`${test.name} test sequence completed`);
+  await loadDashboard();
+  const incidents = await fetchJson('/api/incidents');
+  if (incidents.length) {
+    await showIncident(incidents[0].id);
+    notify(`${test.name} complete - latest incident selected for review`);
+  } else {
+    notify(`${test.name} complete - no incident was recorded`);
+  }
 }
 
 function bindModalAndControls() {
