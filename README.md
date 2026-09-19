@@ -183,11 +183,11 @@ uvicorn sentinel.main:app --reload
 
 API:
 
-http://127.0.0.1:8000
+https://<your-project>.vercel.app
 
 Swagger documentation:
 
-http://127.0.0.1:8000/docs
+https://<your-project>.vercel.app/docs
 🐳 Docker
 
 Run the application using:
@@ -212,6 +212,22 @@ python simulator/injection.py
 
 These simulations allow the security system to be demonstrated without using a real external application.
 
+## Vercel Deployment
+
+**Live dashboard:** https://faciesentinel-fx6x-git-main-sentinel-ark.vercel.app/
+
+**Latest deployment:** https://faciesentinel-fx6x-e3kffxh7r-sentinel-ark.vercel.app/
+
+1. Import the repo into Vercel and deploy the root project.
+2. Keep the backend as the FastAPI app in `sentinel.main` via `/api/index.py`.
+3. Set optional environment variables as needed:
+   - `SENTINEL_MAX_BODY_BYTES=1048576`
+   - `SENTINEL_DB_PATH=/tmp/sentinel.db`
+   - `SENTINEL_AUDIT_LOG_PATH=/tmp/sentinel_audit.log`
+   - `FACIE_STATE_FILE=/tmp/facie_policy.json`
+4. The dashboard uses same-domain requests such as `/api/stats`, `/api/incidents`, `/api/events`, and `/api/facie/status`.
+5. Test URLs: `https://<your-project>.vercel.app/`, `https://<your-project>.vercel.app/docs`, `https://<your-project>.vercel.app/api/stats`, and `https://<your-project>.vercel.app/api/incidents`.
+6. SQLite is kept isolated and may be ephemeral on Vercel serverless instances; it is not guaranteed to persist across cold starts.
 📊 Dashboard
 
 Facie Sentinel includes a dashboard for monitoring:
