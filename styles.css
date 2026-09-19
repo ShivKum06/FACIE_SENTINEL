@@ -427,6 +427,8 @@ tbody tr.incident-focus td { color: var(--text); }
   font: 11px var(--mono);
 }
 
+.incident-picker:disabled { opacity: .65; cursor: not-allowed; }
+
 .row-actions {
   display: flex;
   gap: 5px;

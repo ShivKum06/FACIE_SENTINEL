@@ -72,11 +72,11 @@
               <h3 id="incident-execution-title">Waiting for a security test</h3>
             </div>
             <button class="status-pill review-action" id="incident-execution-status" type="button" aria-expanded="false">Ready</button>
+            <label class="incident-picker-label" for="incident-picker">Incident <span id="incident-picker-count">(0 incidents)</span></label>
+            <select id="incident-picker" class="incident-picker">
+              <option value="">Choose an incident</option>
+            </select>
             <div class="execution-approval" id="execution-approval" hidden>
-              <label class="incident-picker-label" for="incident-picker">Select incident <span id="incident-picker-count">(0 incidents)</span></label>
-              <select id="incident-picker" class="incident-picker">
-                <option value="">Choose an incident</option>
-              </select>
               <span>Human approval:</span>
               <button class="row-action allow" id="execution-allow" type="button">Allow</button>
               <button class="row-action block" id="execution-block" type="button">Block</button>

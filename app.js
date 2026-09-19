@@ -230,6 +230,7 @@ function renderIncidents(items) {
   if (pickerCount) pickerCount.textContent = `(${items.length} incident${items.length === 1 ? '' : 's'})`;
   if (picker) {
     const selectedId = state.selectedIncident?.id ? String(state.selectedIncident.id) : '';
+    picker.disabled = items.length === 0;
     picker.innerHTML = `<option value="">${items.length ? `Choose an incident (${items.length} available)` : 'No incidents available'}</option>` + items.map((item) => `
       <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
     `).join('');
