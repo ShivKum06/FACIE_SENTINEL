@@ -231,8 +231,8 @@ function renderIncidents(items) {
   if (picker) {
     const selectedId = state.selectedIncident?.id ? String(state.selectedIncident.id) : '';
     picker.disabled = items.length === 0;
-    picker.innerHTML = `<option value="">${items.length ? `Choose an incident (${items.length} available)` : 'No incidents available'}</option>` + items.map((item) => `
-      <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
+    picker.innerHTML = `<option value="">${items.length ? `Choose an incident (${items.length} available)` : 'No incidents available'}</option>` + items.map((item, index) => `
+      <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>Incident ${index + 1}/${items.length} · INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
     `).join('');
   }
 
@@ -454,6 +454,8 @@ async function runApiSecurityTest() {
   renderIncidentExecution(state.execution);
   await loadDashboard();
   const incidents = await fetchJson('/api/incidents');
+  state.execution.incidents = incidents;
+  renderIncidents(incidents);
   if (incidents.length) {
     await showIncident(incidents[0].id);
     notify(`${test.name} complete - latest incident selected for review`);
