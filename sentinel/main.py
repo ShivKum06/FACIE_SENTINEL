@@ -65,10 +65,10 @@ async def redact_json_response(response: Response) -> tuple[Response, list[str]]
 async def lifespan(app: FastAPI):
     database.init_db()
     if not AUDIT_LOG_PATH.exists():
-        AUDIT_LOG_PATH.write_text("# API Sentinel audit log\n# Timestamp | incident_id | original_action | new_action | reviewer | reason\n", encoding="utf-8")
+        AUDIT_LOG_PATH.write_text("# FACIE Sentinel audit log\n# Timestamp | incident_id | original_action | new_action | reviewer | reason\n", encoding="utf-8")
     yield
 
-app = FastAPI(title="API Sentinel", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="FACIE Sentinel", version="0.1.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 @app.middleware("http")
@@ -116,7 +116,7 @@ async def security_gateway(request: Request, call_next):
     decision = baseline_decision.model_copy(update={"decision": facie_result["action"], "reason": facie_result["reason"], "policy": "FACIE-ADAPTIVE"})
     dashboard_api = request.url.path in {"/api/events", "/api/incidents", "/api/endpoints", "/api/stats", "/api/facie/status"} or request.url.path.startswith("/api/incidents/")
     if decision.decision == "BLOCK" and not dashboard_api:
-        response = JSONResponse({"detail": "Blocked by API Sentinel", "request_id": request_id}, status_code=403)
+        response = JSONResponse({"detail": "Blocked by FACIE Sentinel", "request_id": request_id}, status_code=403)
     elif decision.decision == "RATE_LIMIT" and not dashboard_api:
         response = JSONResponse({"detail": "Rate limit exceeded", "request_id": request_id}, status_code=429, headers={"Retry-After": "60"})
     else:
