@@ -139,8 +139,13 @@ function getHeadersFromInput(raw) {
   return headers;
 }
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:8000'
+  : '';
+
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  const response = await fetch(fullUrl, options);
   if (!response.ok) throw new Error(`Request failed: ${response.status}`);
   return response.json();
 }
