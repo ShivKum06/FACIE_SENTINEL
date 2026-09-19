@@ -192,7 +192,7 @@ function renderIncidents(items) {
     const risk = Number(item.risk_score || 0);
     const selected = state.selectedIncident && Number(item.id) === Number(state.selectedIncident.id);
     return `
-      <tr class="${selected ? 'selected' : ''}" data-id="${item.id}" aria-label="Show incident ${item.id}">
+      <tr class="incident-row ${selected ? 'selected incident-focus' : ''}" data-id="${item.id}" aria-label="Show incident ${item.id}">
         <td class="id">INC-${esc(item.id)}</td>
         <td>${esc(item.threat_type)}</td>
         <td class="endpoint" title="${esc(item.endpoint)}">${esc(item.endpoint)}</td>
@@ -240,6 +240,8 @@ async function showIncident(id) {
 
     state.selectedIncident = incident;
     renderIncidents(await fetchJson('/api/incidents'));
+    const selectedRow = document.querySelector(`#incidents tr[data-id="${id}"]`);
+    selectedRow?.classList.add('selected', 'incident-focus');
 
     const detail = $('#detail');
     if (detail) {

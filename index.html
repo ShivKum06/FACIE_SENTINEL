@@ -1,13 +1,210 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=/dashboard.html">
-  <title>FACIE Sentinel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FACIE Sentinel - Security Test Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <p>Loading FACIE Sentinel dashboard...</p>
-  <script>window.location.replace('/dashboard.html');</script>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="API security test navigation">
+      <div class="sidebar-header">
+        <div class="brand-mark">F</div>
+        <div>
+          <div class="live-badge"><span class="pulse-dot"></span> LIVE SECURITY</div>
+          <h2>FACIE Sentinel</h2>
+        </div>
+      </div>
+      <div class="sidebar-section-label">API security tests</div>
+      <nav id="security-nav" class="security-nav" aria-label="Security tests"></nav>
+    </aside>
+
+    <main class="dashboard-panel">
+      <header class="dashboard-header">
+        <div class="brand-block">
+          <div class="brand-mark small">F</div>
+          <div>
+            <div class="live-badge"><span class="pulse-dot"></span> LIVE MONITORING</div>
+            <h1>FACIE Sentinel</h1>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="conn-status" id="connStatus"><span class="conn-dot"></span><span id="connLabel">Connecting...</span></div>
+          <button class="header-button secondary" onclick="window.refreshDashboard(true)" type="button">Refresh</button>
+          <button class="header-button primary" id="api-guide-button" type="button">API Security Guide</button>
+        </div>
+      </header>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="panel incidents-panel">
+        <div class="panel-head">
+          <h2>Incidents</h2>
+              <span class="panel-sub" id="incidentCount">0 recent</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Threat</th>
+                <th>Endpoint</th>
+                <th>Risk</th>
+                <th>Facie</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="incidents"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState" hidden>No incidents recorded yet. Sentinel is watching your traffic.</div>
+        </div>
+      </section>
+
+      <section class="detail" id="detail">
+        <div class="detail-inner">
+          <div class="gauge-wrap">
+            <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="8"></circle>
+              <circle id="gaugeArc" cx="60" cy="60" r="50" fill="none" stroke="var(--amber)" stroke-width="8" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)"></circle>
+            </svg>
+            <div class="gauge-num" id="detail-risk">-</div>
+            <div class="gauge-label">Risk score</div>
+          </div>
+
+          <div class="detail-copy">
+            <p class="detail-title" id="detail-title">Incident</p>
+            <p class="detail-meta" id="detail-endpoint"></p>
+
+            <div class="detail-grid">
+              <div>
+                <div class="field-label">Threat type</div>
+                <div class="field-value" id="detail-threat"></div>
+              </div>
+              <div>
+                <div class="field-label">Facie confidence</div>
+                <div class="field-value" id="detail-confidence"></div>
+              </div>
+              <div>
+                <div class="field-label">Current action</div>
+                <div class="field-value" id="detail-action"></div>
+              </div>
+            </div>
+
+            <p class="reasons-label">Why Sentinel flagged it</p>
+            <ul class="reasons" id="detail-reasons"></ul>
+
+            <p class="recommendation" id="detail-recommendation" hidden></p>
+
+            <div class="detail-actions">
+              <button class="primary" onclick="window.overrideIncident('ALLOW')" type="button">Allow request</button>
+              <button class="rate-limit" id="rate-limit-button" onclick="window.overrideIncident('RATE_LIMIT')" type="button">Rate limit request</button>
+              <button class="danger" onclick="window.overrideIncident('BLOCK')" type="button">Keep blocked</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="api-panel" id="api-test-panel" aria-live="polite">
+        <div class="api-panel-header">
+          <div>
+            <p class="eyebrow">FACIE SECURITY TEST RUNNER</p>
+            <h3 id="active-test-title">BOLA / IDOR</h3>
+          </div>
+          <span class="status-pill" id="test-status">Ready</span>
+        </div>
+
+        <div class="api-panel-grid">
+          <div class="api-form">
+            <label>
+              <span>Endpoint URL</span>
+              <input id="test-endpoint" type="text" value="/api/incidents" placeholder="/api/incidents or https://api.example.com/v1/users/42">
+            </label>
+
+            <label>
+              <span>Custom headers</span>
+              <textarea id="test-headers" rows="4" placeholder="Authorization: Bearer demo-token&#10;X-User-Id: 42&#10;X-Role: admin"></textarea>
+            </label>
+
+            <div class="inline-fields">
+              <label>
+                <span>Token / Bearer</span>
+                <input id="test-token" type="text" placeholder="Bearer token or session value">
+              </label>
+
+              <label>
+                <span>Request count</span>
+                <input id="test-count" type="number" min="1" max="80" value="1">
+              </label>
+            </div>
+
+            <button class="primary full" id="run-test-button" type="button">Run API Test</button>
+          </div>
+
+          <div class="api-summary">
+            <h4>Test focus</h4>
+            <p id="test-description">Review whether object-level access checks are enforced consistently and whether the user can access another record without authorization.</p>
+
+            <div class="summary-list" id="test-summary-list"></div>
+
+            <div class="result-box">
+              <div class="result-heading">Execution log</div>
+              <div id="test-results" class="result-log"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="guide-modal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">API SECURITY GUIDE</p>
+          <h3 id="guide-modal-title">API test quick reference</h3>
+        </div>
+        <button class="close-button" id="close-guide-button" type="button" aria-label="Close guide">×</button>
+      </div>
+
+      <div class="guide-grid">
+        <article class="guide-card">
+          <div class="guide-icon">👤</div>
+          <h4>BOLA / IDOR</h4>
+          <p>Check whether a user can reach another user's object or resource using a predictable identifier without permission checks.</p>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-icon">🔑</div>
+          <h4>Broken Authentication</h4>
+          <p>Verify tokens, refresh flows, and session sharing are not trivial to bypass or replay across accounts.</p>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-icon">👁️</div>
+          <h4>BPLRA</h4>
+          <p>Look for over-fetching and object property leaks where extra data is exposed or hidden fields are readable beyond scope.</p>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-icon">⚡</div>
+          <h4>Unrestricted Resource Consumption</h4>
+          <p>Measure rate limiting, payload size abuse, and retry cycles that can exhaust memory, CPU, or downstream services.</p>
+        </article>
+      </div>
+
+      <div class="modal-footer">
+        <button class="primary" id="guide-cta" type="button">Close guide and select test</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>

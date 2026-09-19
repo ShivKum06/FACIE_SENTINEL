@@ -323,6 +323,8 @@ th { color: var(--muted); font: 11px var(--mono); text-transform: uppercase; let
 tbody tr { cursor: pointer; }
 tbody tr:hover { background: rgba(255,255,255,.02); }
 tbody tr.selected { background: rgba(94,234,168,.06); box-shadow: inset 0 0 0 1px rgba(94,234,168,.22); }
+tbody tr.incident-focus { background: rgba(94,234,168,.15); box-shadow: inset 4px 0 0 var(--green), inset 0 0 0 1px rgba(94,234,168,.55); }
+tbody tr.incident-focus td { color: var(--text); }
 
 .id { font: 12px var(--mono); color: var(--blue); }
 .endpoint { max-width: 160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
