@@ -368,10 +368,13 @@ tbody tr.incident-focus td { color: var(--text); }
 .incident-execution-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 10px;
 }
+
+.incident-execution-head > div { margin-right: auto; min-width: 0; }
 
 .incident-execution-head h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
 
@@ -395,6 +398,20 @@ tbody tr.incident-focus td { color: var(--text); }
 
 .incident-log-entry.failure { border-left-color: var(--red); }
 .incident-log-index { color: var(--muted); min-width: 38px; }
+
+.status-pill.review-action { cursor: pointer; }
+.status-pill.review-action.needs-review { color: var(--amber); border-color: rgba(255,195,105,.4); background: rgba(255,195,105,.12); }
+.status-pill.review-action:disabled { cursor: default; opacity: 1; }
+
+.execution-approval {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font: 11px var(--mono);
+}
+
+.execution-approval[hidden] { display: none; }
 
 .row-actions {
   display: flex;

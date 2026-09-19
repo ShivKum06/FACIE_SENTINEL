@@ -71,7 +71,12 @@
               <p class="eyebrow">LATEST TEST EXECUTION</p>
               <h3 id="incident-execution-title">Waiting for a security test</h3>
             </div>
-            <span class="status-pill" id="incident-execution-status">Ready</span>
+            <button class="status-pill review-action" id="incident-execution-status" type="button" aria-expanded="false">Ready</button>
+            <div class="execution-approval" id="execution-approval" hidden>
+              <span>Human approval:</span>
+              <button class="row-action allow" id="execution-allow" type="button">Allow</button>
+              <button class="row-action block" id="execution-block" type="button">Block</button>
+            </div>
           </div>
           <div class="incident-log" id="incident-log"></div>
         </div>

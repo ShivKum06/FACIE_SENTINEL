@@ -186,13 +186,30 @@ function renderIncidentExecution(execution) {
   if (!panel || !log || !execution) return;
   panel.hidden = false;
   $('#incident-execution-title').textContent = `${execution.testName} · ${execution.endpoint}`;
-  $('#incident-execution-status').textContent = execution.outcome;
+  const status = $('#incident-execution-status');
+  status.textContent = execution.outcome;
+  status.classList.toggle('needs-review', execution.outcome === 'Review');
+  status.disabled = execution.outcome !== 'Review';
+  status.setAttribute('aria-expanded', 'false');
+  $('#execution-approval').hidden = true;
   log.innerHTML = execution.attempts.map((entry) => `
     <div class="incident-log-entry ${entry.ok ? 'success' : 'failure'}">
       <span class="incident-log-index">${esc(entry.label)}</span>
       <span>${esc(entry.details)}</span>
     </div>
   `).join('');
+}
+
+async function approveExecution(action) {
+  if (!state.selectedIncident) {
+    notify('Select an incident before approving the test result');
+    return;
+  }
+  await overrideIncident(action);
+  if (state.execution) {
+    state.execution.outcome = action === 'ALLOW' ? 'Allowed' : 'Blocked';
+    renderIncidentExecution(state.execution);
+  }
 }
 
 function renderIncidents(items) {
@@ -434,6 +451,15 @@ function bindModalAndControls() {
   $('#close-guide-button')?.addEventListener('click', closeGuideModal);
   $('#guide-cta')?.addEventListener('click', closeGuideModal);
   $('#run-test-button')?.addEventListener('click', runApiSecurityTest);
+  $('#incident-execution-status')?.addEventListener('click', () => {
+    const status = $('#incident-execution-status');
+    const approval = $('#execution-approval');
+    const expanded = status.getAttribute('aria-expanded') === 'true';
+    status.setAttribute('aria-expanded', String(!expanded));
+    approval.hidden = expanded;
+  });
+  $('#execution-allow')?.addEventListener('click', () => approveExecution('ALLOW'));
+  $('#execution-block')?.addEventListener('click', () => approveExecution('BLOCK'));
   $('#guide-modal')?.addEventListener('click', (event) => {
     if (event.target === $('#guide-modal')) closeGuideModal();
   });
