@@ -1,11 +1,10 @@
 {
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/docs", "dest": "/api/index.py" },
-    { "src": "/openapi.json", "dest": "/api/index.py" },
-    { "src": "/redoc", "dest": "/api/index.py" },
-    { "src": "/dashboard.html", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/docs", "destination": "/api/index.py" },
+    { "source": "/openapi.json", "destination": "/api/index.py" },
+    { "source": "/redoc", "destination": "/api/index.py" },
+    { "source": "/dashboard.html", "destination": "/index.html" }
   ],
   "headers": [
     {
