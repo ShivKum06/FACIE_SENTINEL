@@ -214,7 +214,7 @@ These simulations allow the security system to be demonstrated without using a r
 
 ## Vercel Deployment
 
-**Live dashboard:** https://faciesentinel-fx6x.vercel.app/
+**Live dashboard:** https://faciesentinel-fx6x-git-main-sentinel-ark.vercel.app/
 
 **Main branch deployment:** https://faciesentinel-fx6x-git-main-sentinel-ark.vercel.app/
 
