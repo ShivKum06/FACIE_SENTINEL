@@ -19,7 +19,14 @@ from sentinel.protection import redact_sensitive_data, inspect_request_controls,
 from sentinel.response import decide
 from sentinel.risk import build_result
 
-AUDIT_LOG_PATH = Path(__file__).resolve().parent.parent / "sentinel_audit.log"
+
+def _default_audit_path() -> Path:
+    if os.getenv("VERCEL"):
+        return Path("/tmp/sentinel_audit.log")
+    return Path(__file__).resolve().parent.parent / "sentinel_audit.log"
+
+
+AUDIT_LOG_PATH = Path(os.getenv("SENTINEL_AUDIT_LOG_PATH", str(_default_audit_path())))
 MAX_BODY_BYTES = int(os.getenv("SENTINEL_MAX_BODY_BYTES", "1048576"))
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 AUDIT_LOCK = threading.Lock()

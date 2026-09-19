@@ -20,8 +20,12 @@ class FaciePolicy:
     }
 
     def __init__(self, state_file: str | Path | None = None) -> None:
-        default_path = Path(__file__).resolve().parent.parent / "facie_policy.json"
-        self.state_file = Path(state_file or os.getenv("FACIE_STATE_FILE", default_path))
+        def default_path() -> Path:
+            if os.getenv("VERCEL"):
+                return Path("/tmp/facie_policy.json")
+            return Path(__file__).resolve().parent.parent / "facie_policy.json"
+
+        self.state_file = Path(state_file or os.getenv("FACIE_STATE_FILE", str(default_path())))
         self._lock = threading.Lock()
         self._q_table = self._load()
 

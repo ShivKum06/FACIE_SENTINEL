@@ -1,0 +1,24 @@
+Injection for INIT26
+
+Use powershell
+Invoke-WebRequest "https://facie-sentinel.onrender.com/search?q=union%20select%20password"
+
+refresh the vercel app and it will show incident
+
+SQL injection pattern
+Invoke-WebRequest "https://facie-sentinel.onrender.com/search?q=union%20select%20password%20from%20users"
+Expected: 403, INJECTION, BLOCK.
+
+JSON body injection
+Invoke-WebRequest `
+  -Uri "https://facie-sentinel.onrender.com/api/v1/user/profile" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"display_name":"Test","bio":"union select password from users"}'
+After sending them, refresh the dashboard. You should see INJECTION incidents with high risk and BLOCK actions.
+
+For enumeration testing:
+1..10 | ForEach-Object {
+  Invoke-WebRequest "https://facie-sentinel.onrender.com/users/$_"
+}
+Expected: API_ENUMERATION detection and REVIEW action.

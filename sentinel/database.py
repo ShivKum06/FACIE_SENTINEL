@@ -1,8 +1,16 @@
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
 
-DB_PATH = Path(__file__).resolve().parent.parent / "sentinel.db"
+
+def _default_db_path() -> Path:
+    if os.getenv("VERCEL"):
+        return Path("/tmp/sentinel.db")
+    return Path(__file__).resolve().parent.parent / "sentinel.db"
+
+
+DB_PATH = Path(os.getenv("SENTINEL_DB_PATH", str(_default_db_path())))
 
 
 def connect() -> sqlite3.Connection:
