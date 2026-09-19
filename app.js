@@ -49,7 +49,8 @@
 const state = {
   selectedIncident: null,
   activeTestId: 'bola',
-  socket: null
+  socket: null,
+  execution: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -179,6 +180,21 @@ function renderStats(stats) {
   `).join('');
 }
 
+function renderIncidentExecution(execution) {
+  const panel = $('#incident-execution');
+  const log = $('#incident-log');
+  if (!panel || !log || !execution) return;
+  panel.hidden = false;
+  $('#incident-execution-title').textContent = `${execution.testName} · ${execution.endpoint}`;
+  $('#incident-execution-status').textContent = execution.outcome;
+  log.innerHTML = execution.attempts.map((entry) => `
+    <div class="incident-log-entry ${entry.ok ? 'success' : 'failure'}">
+      <span class="incident-log-index">${esc(entry.label)}</span>
+      <span>${esc(entry.details)}</span>
+    </div>
+  `).join('');
+}
+
 function renderIncidents(items) {
   const incidentCount = $('#incidentCount');
   const emptyState = $('#emptyState');
@@ -203,7 +219,13 @@ function renderIncidents(items) {
           </div>
         </td>
         <td><span class="pill ${actionClass(item.ai_action || item.action)}">${esc(item.ai_action || item.action)}</span></td>
-        <td><span class="pill ${actionClass(item.action)}">${esc(item.action)}</span></td>
+        <td>
+          <span class="pill ${actionClass(item.action)}">${esc(item.action)}</span>
+          <div class="row-actions" data-row-actions>
+            <button class="row-action allow" type="button" data-action="ALLOW">Allow</button>
+            <button class="row-action block" type="button" data-action="BLOCK">Block</button>
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
@@ -211,6 +233,12 @@ function renderIncidents(items) {
   tableBody.querySelectorAll('tr').forEach((row) => {
     row.addEventListener('click', () => {
       showIncident(Number(row.dataset.id));
+    });
+    row.querySelectorAll('[data-action]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        approveIncident(Number(row.dataset.id), button.dataset.action);
+      });
     });
   });
 }
@@ -286,6 +314,11 @@ async function overrideIncident(action) {
   }
 }
 
+async function approveIncident(id, action) {
+  await showIncident(id);
+  await overrideIncident(action);
+}
+
 function startSocket() {
   if (window.location.hostname.endsWith('.vercel.app')) {
     setConnectionState('up');
@@ -353,6 +386,13 @@ async function runApiSecurityTest() {
         message: await response.text()
       };
       attempts.push({ ok: result.ok, label: `${i + 1}/${maxAttempts}`, details: `${result.status} · ${parseResultOutcome(result, test)} · ${test.name}` });
+      state.execution = {
+        testName: test.name,
+        endpoint,
+        outcome: 'Running',
+        attempts
+      };
+      renderIncidentExecution(state.execution);
       results.innerHTML = attempts.map((entry) => `
         <div class="log-entry ${entry.ok ? '' : 'error'}">
           ${esc(entry.label)} — ${esc(entry.details)}
@@ -360,6 +400,13 @@ async function runApiSecurityTest() {
       `).join('');
     } catch (error) {
       attempts.push({ ok: false, label: `${i + 1}/${maxAttempts}`, details: `Request error · ${error.message}` });
+      state.execution = {
+        testName: test.name,
+        endpoint,
+        outcome: 'Review',
+        attempts
+      };
+      renderIncidentExecution(state.execution);
       results.innerHTML = attempts.map((entry) => `
         <div class="log-entry error">
           ${esc(entry.label)} — ${esc(entry.details)}
@@ -370,6 +417,8 @@ async function runApiSecurityTest() {
 
   const outcome = attempts.some((entry) => entry.ok === false) ? 'Review' : 'Pass';
   statusPill.textContent = outcome;
+  state.execution = { testName: test.name, endpoint, outcome, attempts };
+  renderIncidentExecution(state.execution);
   await loadDashboard();
   const incidents = await fetchJson('/api/incidents');
   if (incidents.length) {
