@@ -12,6 +12,8 @@ def decide(result: SecurityResult) -> DecisionResult:
         decision, policy = "REVIEW", "DEFAULT-ELEVATED-RISK"
     elif result.risk_score >= 30:
         decision, policy = "MONITOR", "DEFAULT-MONITOR"
+    elif result.threat_type != "NONE":
+        decision, policy = "RATE_LIMIT", "DEFAULT-LOW-RISK-THROTTLE"
     else:
         decision, policy = "ALLOW", "DEFAULT-ALLOW"
     reason = result.reasons[0] if result.reasons else "No security signals detected"

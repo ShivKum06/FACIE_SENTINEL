@@ -5,7 +5,16 @@ from fastapi.testclient import TestClient
 from sentinel import database
 from sentinel.main import app
 from sentinel.ml_anomaly import anomaly_score
-from sentinel.models import RequestContext
+from sentinel.models import RequestContext, SecurityResult
+from sentinel.response import decide
+
+
+def test_low_risk_signal_is_rate_limited_without_throttling_clean_traffic():
+    flagged = SecurityResult(request_id="REQ-LOW-RISK", anomaly_score=0, threat_score=10, risk_score=12, severity="LOW", threat_type="RATE_ABUSE", reasons=["Low-volume abuse signal"])
+    clean = SecurityResult(request_id="REQ-CLEAN", anomaly_score=0, threat_score=0, risk_score=0, severity="LOW", threat_type="NONE")
+
+    assert decide(flagged).decision == "RATE_LIMIT"
+    assert decide(clean).decision == "ALLOW"
 
 
 def test_demo_api_and_enumeration_incident():

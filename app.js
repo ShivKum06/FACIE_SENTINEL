@@ -137,6 +137,7 @@ function actionClass(action = 'ALLOW') {
   const value = String(action).toLowerCase();
   if (value.includes('allow')) return 'allow';
   if (value.includes('block')) return 'block';
+  if (value.includes('rate')) return 'rate-limit';
   if (value.includes('challenge') || value.includes('review')) return 'review';
   return 'monitor';
 }
@@ -238,6 +239,12 @@ async function showIncident(id) {
       $('#detail-confidence').textContent = incident.ai_confidence ? `${Math.round(incident.ai_confidence * 100)}%` : 'n/a';
       $('#detail-action').textContent = incident.action;
       $('#detail-risk').textContent = `${risk}/100`;
+      const isLowRisk = risk < 30;
+      $('#detail-recommendation').hidden = !isLowRisk;
+      $('#detail-recommendation').textContent = isLowRisk
+        ? 'Low-risk incident: apply a temporary rate limit after human approval.'
+        : 'Choose an action after reviewing the evidence and risk score.';
+      $('#rate-limit-button').classList.toggle('recommended', isLowRisk);
       $('#gaugeArc').style.stroke = risk >= 70 ? 'var(--red)' : risk >= 40 ? 'var(--amber)' : 'var(--green)';
       $('#gaugeArc').style.strokeDashoffset = 314.16 - (314.16 * risk / 100);
       $('#detail-reasons').innerHTML = (event?.reason || incident.ai_reason || 'Security rule matched').split('; ').map((reason) => `<li>${esc(reason)}</li>`).join('');

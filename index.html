@@ -100,8 +100,11 @@
             <p class="reasons-label">Why Sentinel flagged it</p>
             <ul class="reasons" id="detail-reasons"></ul>
 
+            <p class="recommendation" id="detail-recommendation" hidden></p>
+
             <div class="detail-actions">
               <button class="primary" onclick="window.overrideIncident('ALLOW')" type="button">Allow request</button>
+              <button class="rate-limit" id="rate-limit-button" onclick="window.overrideIncident('RATE_LIMIT')" type="button">Rate limit request</button>
               <button class="danger" onclick="window.overrideIncident('BLOCK')" type="button">Keep blocked</button>
             </div>
           </div>
