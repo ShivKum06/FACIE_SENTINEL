@@ -226,9 +226,11 @@ function renderIncidents(items) {
   incidentCount.textContent = `${items.length} recent`;
   emptyState.hidden = items.length > 0;
   const picker = $('#incident-picker');
+  const pickerCount = $('#incident-picker-count');
+  if (pickerCount) pickerCount.textContent = `(${items.length} incident${items.length === 1 ? '' : 's'})`;
   if (picker) {
     const selectedId = state.selectedIncident?.id ? String(state.selectedIncident.id) : '';
-    picker.innerHTML = `<option value="">${items.length ? 'Choose an incident' : 'No incidents available'}</option>` + items.map((item) => `
+    picker.innerHTML = `<option value="">${items.length ? `Choose an incident (${items.length} available)` : 'No incidents available'}</option>` + items.map((item) => `
       <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
     `).join('');
   }
@@ -330,11 +332,12 @@ async function showIncident(id) {
 async function overrideIncident(action) {
   if (!state.selectedIncident) return;
   try {
-    await fetchJson(`/api/incidents/${state.selectedIncident.id}/override`, {
+    const updated = await fetchJson(`/api/incidents/${state.selectedIncident.id}/override`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, reason: 'Reviewed in Sentinel dashboard', reviewer: 'dashboard-user' })
     });
+    state.selectedIncident = { ...state.selectedIncident, action: updated.action, status: updated.status };
     notify(`Incident action changed to ${action}`);
     await loadDashboard();
     await showIncident(state.selectedIncident.id);

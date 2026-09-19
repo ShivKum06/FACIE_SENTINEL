@@ -414,7 +414,8 @@ tbody tr.incident-focus td { color: var(--text); }
 
 .execution-approval[hidden] { display: none; }
 
-.incident-picker-label { color: var(--muted); }
+.incident-picker-label { color: var(--muted); white-space: nowrap; }
+.incident-picker-label span { color: var(--blue); }
 
 .incident-picker {
   max-width: 240px;
