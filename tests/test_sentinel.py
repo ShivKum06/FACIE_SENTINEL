@@ -103,6 +103,41 @@ def test_override_records_action_and_writes_log_file():
     assert "incident_id" in log_text
 
 
+def test_selected_incident_can_be_blocked_by_human_approval():
+    event_id = database.insert("security_events", {
+        "request_id": "REQ-BLOCK-SELECTED",
+        "threat_type": "BOLA_IDOR",
+        "rule_score": 100,
+        "anomaly_score": 0.1,
+        "risk_score": 90,
+        "severity": "CRITICAL",
+        "reason": "Unauthorized object access",
+        "created_at": "2026-01-01T00:00:00+00:00",
+    })
+    incident_id = database.insert("incidents", {
+        "event_id": event_id,
+        "endpoint": "/api/v1/orders/order_101",
+        "ip": "10.0.0.30",
+        "threat_type": "BOLA_IDOR",
+        "risk_score": 90,
+        "action": "REVIEW",
+        "status": "OPEN",
+        "created_at": "2026-01-01T00:00:00+00:00",
+    })
+
+    with TestClient(app) as client:
+        response = client.post(
+            f"/api/incidents/{incident_id}/override",
+            json={"action": "BLOCK", "reason": "Blocked after selected incident review", "reviewer": "dashboard-user"},
+        )
+        updated = client.get(f"/api/incidents/{incident_id}").json()
+
+    assert response.status_code == 200
+    assert response.json()["action"] == "BLOCK"
+    assert updated["action"] == "BLOCK"
+    assert updated["status"] == "OVERRIDDEN"
+
+
 def test_facie_is_live_and_persists_recommendation():
     with TestClient(app) as client:
         status = client.get("/api/facie/status")

@@ -9,3 +9,15 @@ sentinel_audit.log
 ~$*.docx
 *.log
 .DS_Store
+.vercel/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
