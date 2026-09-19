@@ -154,10 +154,6 @@ function actionClass(action = 'ALLOW') {
   return 'monitor';
 }
 
-function severity(score) {
-  return score >= 70 ? 'high' : score >= 40 ? 'med' : 'low';
-}
-
 function renderStats(stats) {
   const ready = stats?.facie?.status === 'ready';
   const cards = [
@@ -223,20 +219,25 @@ function renderIncidents(items) {
   const tableBody = $('#incidents');
   if (!incidentCount || !tableBody) return;
 
-  incidentCount.textContent = `${items.length} recent`;
-  emptyState.hidden = items.length > 0;
+  // Safe fallback array mapping to handle null/undefined cleanly
+  const itemsArray = Array.isArray(items) ? items : [];
+
+  incidentCount.textContent = `${itemsArray.length} recent`;
+  if (emptyState) emptyState.hidden = itemsArray.length > 0;
+  
   const picker = $('#incident-picker');
   const pickerCount = $('#incident-picker-count');
-  if (pickerCount) pickerCount.textContent = `(${items.length} incident${items.length === 1 ? '' : 's'})`;
+  if (pickerCount) pickerCount.textContent = `(${itemsArray.length} incident${itemsArray.length === 1 ? '' : 's'})`;
+  
   if (picker) {
     const selectedId = state.selectedIncident?.id ? String(state.selectedIncident.id) : '';
-    picker.disabled = items.length === 0;
-    picker.innerHTML = `<option value="">${items.length ? `Choose an incident (${items.length} available)` : 'No incidents available'}</option>` + items.map((item, index) => `
-      <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>Incident ${index + 1}/${items.length} · INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
+    picker.disabled = itemsArray.length === 0;
+    picker.innerHTML = `<option value="">${itemsArray.length ? `Choose an incident (${itemsArray.length} available)` : 'No incidents available'}</option>` + itemsArray.map((item, index) => `
+      <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>Incident ${index + 1}/${itemsArray.length} · INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
     `).join('');
   }
 
-  tableBody.innerHTML = items.map((item) => {
+  tableBody.innerHTML = itemsArray.map((item) => {
     const risk = Number(item.risk_score || 0);
     const selected = state.selectedIncident && Number(item.id) === Number(state.selectedIncident.id);
     return `
