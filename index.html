@@ -73,6 +73,10 @@
             </div>
             <button class="status-pill review-action" id="incident-execution-status" type="button" aria-expanded="false">Ready</button>
             <div class="execution-approval" id="execution-approval" hidden>
+              <label class="incident-picker-label" for="incident-picker">Select incident</label>
+              <select id="incident-picker" class="incident-picker">
+                <option value="">Choose an incident</option>
+              </select>
               <span>Human approval:</span>
               <button class="row-action allow" id="execution-allow" type="button">Allow</button>
               <button class="row-action block" id="execution-block" type="button">Block</button>

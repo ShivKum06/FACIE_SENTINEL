@@ -201,9 +201,14 @@ function renderIncidentExecution(execution) {
 }
 
 async function approveExecution(action) {
-  if (!state.selectedIncident) {
+  const picker = $('#incident-picker');
+  const incidentId = picker?.value || state.selectedIncident?.id;
+  if (!incidentId) {
     notify('Select an incident before approving the test result');
     return;
+  }
+  if (!state.selectedIncident || Number(state.selectedIncident.id) !== Number(incidentId)) {
+    await showIncident(Number(incidentId));
   }
   await overrideIncident(action);
   if (state.execution) {
@@ -220,6 +225,13 @@ function renderIncidents(items) {
 
   incidentCount.textContent = `${items.length} recent`;
   emptyState.hidden = items.length > 0;
+  const picker = $('#incident-picker');
+  if (picker) {
+    const selectedId = state.selectedIncident?.id ? String(state.selectedIncident.id) : '';
+    picker.innerHTML = `<option value="">${items.length ? 'Choose an incident' : 'No incidents available'}</option>` + items.map((item) => `
+      <option value="${esc(item.id)}" ${String(item.id) === selectedId ? 'selected' : ''}>INC-${esc(item.id)} · ${esc(item.threat_type)} · Risk ${esc(item.risk_score)}</option>
+    `).join('');
+  }
 
   tableBody.innerHTML = items.map((item) => {
     const risk = Number(item.risk_score || 0);
@@ -460,6 +472,10 @@ function bindModalAndControls() {
   });
   $('#execution-allow')?.addEventListener('click', () => approveExecution('ALLOW'));
   $('#execution-block')?.addEventListener('click', () => approveExecution('BLOCK'));
+  $('#incident-picker')?.addEventListener('change', (event) => {
+    const incidentId = Number(event.target.value);
+    if (incidentId) showIncident(incidentId);
+  });
   $('#guide-modal')?.addEventListener('click', (event) => {
     if (event.target === $('#guide-modal')) closeGuideModal();
   });
